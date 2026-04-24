@@ -50,3 +50,9 @@ UPDATE commentaries
 SET deleted_at = NOW()
 WHERE article_id = :article_id
   AND deleted_at IS NULL;
+
+-- name: get-comments-count-for-article-by-slug^
+SELECT count(*) as comments_count
+FROM commentaries c
+         INNER JOIN articles a ON c.article_id = a.id AND (a.slug = :slug)
+WHERE c.deleted_at IS NULL;

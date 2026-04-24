@@ -6,6 +6,7 @@ from app.models.schemas.rwschema import RWSchema
 
 class ListOfCommentsInResponse(RWSchema):
     comments: List[Comment]
+    comments_count: int
 
 
 class CommentInResponse(RWSchema):

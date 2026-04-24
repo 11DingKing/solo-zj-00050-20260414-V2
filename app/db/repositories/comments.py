@@ -98,6 +98,24 @@ class CommentsRepository(BaseRepository):
                 article_id=article_id,
             )
 
+    async def get_comments_count_for_article(
+        self,
+        *,
+        article: Article,
+    ) -> int:
+        return await self.get_comments_count_for_article_by_slug(slug=article.slug)
+
+    async def get_comments_count_for_article_by_slug(
+        self,
+        *,
+        slug: str,
+    ) -> int:
+        count_row = await queries.get_comments_count_for_article_by_slug(
+            self.connection,
+            slug=slug,
+        )
+        return count_row["comments_count"]
+
     async def _get_comment_from_db_record(
         self,
         *,

@@ -14,3 +14,4 @@ class Article(IDModelMixin, DateTimeModelMixin, RWModel):
     author: Profile
     favorited: bool
     favorites_count: int
+    comments_count: int = 0

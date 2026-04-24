@@ -324,6 +324,9 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
             )
             if requested_user
             else False,
+            comments_count=await self._comments_repo.get_comments_count_for_article_by_slug(
+                slug=slug,
+            ),
             created_at=article_row["created_at"],
             updated_at=article_row["updated_at"],
         )

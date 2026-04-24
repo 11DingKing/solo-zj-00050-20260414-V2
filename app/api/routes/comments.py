@@ -34,7 +34,8 @@ async def list_comments_for_article(
     comments_repo: CommentsRepository = Depends(get_repository(CommentsRepository)),
 ) -> ListOfCommentsInResponse:
     comments = await comments_repo.get_comments_for_article(article=article, user=user)
-    return ListOfCommentsInResponse(comments=comments)
+    comments_count = await comments_repo.get_comments_count_for_article(article=article)
+    return ListOfCommentsInResponse(comments=comments, comments_count=comments_count)
 
 
 @router.post(
