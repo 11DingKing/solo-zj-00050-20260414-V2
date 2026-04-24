@@ -10,6 +10,8 @@ from app.models.domain.articles import Article
 from app.models.domain.comments import Comment
 from app.models.domain.users import User
 
+DELETED_COMMENT_BODY = "该评论已删除"
+
 
 class CommentsRepository(BaseRepository):
     def __init__(self, conn: Connection) -> None:
@@ -78,11 +80,23 @@ class CommentsRepository(BaseRepository):
         )
 
     async def delete_comment(self, *, comment: Comment) -> None:
-        await queries.delete_comment_by_id(
-            self.connection,
-            comment_id=comment.id_,
-            author_username=comment.author.username,
-        )
+        async with self.connection.transaction():
+            await queries.soft_delete_comment_by_id(
+                self.connection,
+                comment_id=comment.id_,
+                author_username=comment.author.username,
+            )
+
+    async def soft_delete_comments_by_article_id(
+        self,
+        *,
+        article_id: int,
+    ) -> None:
+        async with self.connection.transaction():
+            await queries.soft_delete_comments_by_article_id(
+                self.connection,
+                article_id=article_id,
+            )
 
     async def _get_comment_from_db_record(
         self,
@@ -91,13 +105,15 @@ class CommentsRepository(BaseRepository):
         author_username: str,
         requested_user: Optional[User],
     ) -> Comment:
+        is_deleted = comment_row.get("deleted_at") is not None
         return Comment(
             id_=comment_row["id"],
-            body=comment_row["body"],
+            body=DELETED_COMMENT_BODY if is_deleted else comment_row["body"],
             author=await self._profiles_repo.get_profile_by_username(
                 username=author_username,
                 requested_user=requested_user,
             ),
             created_at=comment_row["created_at"],
             updated_at=comment_row["updated_at"],
+            deleted_at=comment_row.get("deleted_at"),
         )

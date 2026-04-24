@@ -14,6 +14,7 @@ from app.db.queries.tables import (
     users,
 )
 from app.db.repositories.base import BaseRepository
+from app.db.repositories.comments import CommentsRepository
 from app.db.repositories.profiles import ProfilesRepository
 from app.db.repositories.tags import TagsRepository
 from app.models.domain.articles import Article
@@ -30,6 +31,7 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
         super().__init__(conn)
         self._profiles_repo = ProfilesRepository(conn)
         self._tags_repo = TagsRepository(conn)
+        self._comments_repo = CommentsRepository(conn)
 
     async def create_article(  # noqa: WPS211
         self,
@@ -92,6 +94,9 @@ class ArticlesRepository(BaseRepository):  # noqa: WPS214
 
     async def delete_article(self, *, article: Article) -> None:
         async with self.connection.transaction():
+            await self._comments_repo.soft_delete_comments_by_article_id(
+                article_id=article.id_,
+            )
             await queries.delete_article(
                 self.connection,
                 slug=article.slug,
